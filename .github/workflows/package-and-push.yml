@@ -10,18 +10,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v3
+      - name: 📥 Checkout code
+        uses: actions/checkout@v3
 
-    - name: 🛠 Set up build directory
-      run: |
-        mkdir -p build-output
-        cp home-net-monitor.deb build-output/
-        cp version.txt build-output/
+      - name: 🛠 Set up build directory
+        run: |
+          mkdir -p build-output
+          cp home-net-monitor.deb build-output/
+          cp version.txt build-output/
 
-    - name: 📤 Upload DEB package & version
-      uses: actions/upload-artifact@v3
-      with:
-        name: HomeNetMonitor_Package
-        path: build-output/
-``
+      - name: 📤 Upload DEB package & version
+        uses: actions/upload-artifact@v3
+        with:
+          name: HomeNetMonitor_Package
+          path: build-output/
