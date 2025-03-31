@@ -1,0 +1,27 @@
+name: Package HomeNetMonitor
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Create .deb package
+        run: |
+          sudo apt update
+          sudo apt install -y dpkg fakeroot
+          dpkg-deb --build deb-build/home-net-monitor home-net-monitor.deb
+          echo "1.1.0" > version.txt
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: deb-package
+          path: |
+            home-net-monitor.deb
+            version.txt
