@@ -1,58 +1,4 @@
-name: Build & Deploy HomeNetMonitor
-
-on:
-  push:
-    branches: [ master ]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v3
-
-      - name: 🛠️ Install build tools
-        run: |
-          sudo apt update
-          sudo apt install -y dpkg-dev jq curl
-
-      - name: 📦 Build the .deb package
-        run: |
-          chmod +x ./install-scripts/wizard-installer.sh
-          mkdir -p ./deb-build/home-net-monitor/DEBIAN
-          echo "Package: home-net-monitor
-Version: 1.1.0
-Section: utils
-Priority: optional
-Architecture: all
-Maintainer: hbkdad
-Description: HomeNetMonitor Network Tool
-" > ./deb-build/home-net-monitor/DEBIAN/control
-
-          cp -r ./agent ./backend ./frontend ./install-scripts ./deb-build/home-net-monitor/usr/local/home-net-monitor/
-          dpkg-deb --build ./deb-build/home-net-monitor
-
-      - name: 📤 Upload Artifact to GitHub
-        uses: actions/upload-artifact@v3
-        with:
-          name: home-net-monitor-deb
-          path: ./deb-build/home-net-monitor.deb
-
-      - name: 🧾 Create version.txt
-        run: echo "1.1.0" > version.txt
-
-      - name: 🚀 Publish to GitHub Releases
-        uses: softprops/action-gh-release@v1
-        with:
-          name: Release v1.1.0
-          tag_name: v1.1.0
-          files: |
-            deb-build/home-net-monitor.deb
-            version.txt
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-name: Build and Push HomeNetMonitor DEB
+name: Build and Upload DEB Package
 
 on:
   push:
@@ -60,22 +6,27 @@ on:
       - master
 
 jobs:
-  build-and-push:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: ✅ Checkout Repository
+      - name: 📁 Checkout code
         uses: actions/checkout@v3
 
-      - name: 📦 Build .deb Package
+      - name: 🛠️ Install dpkg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y dpkg-dev
+
+      - name: 📦 Build DEB Package
         run: |
           mkdir -p deb-build-output
           cp -r * deb-build-output/
           cd deb-build-output
           dpkg-deb --build home-net-monitor
-          cp home-net-monitor.deb ..
+          mv home-net-monitor.deb ../home-net-monitor.deb
 
-      - name: 📤 Upload .deb as Artifact
+      - name: ⬆️ Upload Artifact
         uses: actions/upload-artifact@v3
         with:
           name: home-net-monitor
