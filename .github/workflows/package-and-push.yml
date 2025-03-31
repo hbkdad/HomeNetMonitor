@@ -25,3 +25,36 @@ jobs:
           path: |
             home-net-monitor.deb
             version.txt
+name: Build & Upload .deb Package
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: ✅ Checkout code
+      uses: actions/checkout@v3
+
+    - name: 📦 Set up build folders
+      run: |
+        mkdir -p deb-build/home-net-monitor/DEBIAN
+        mkdir -p deb-build/home-net-monitor/usr/local/home-net-monitor
+        echo "Package: home-net-monitor\nVersion: 1.1.0\nArchitecture: all\nMaintainer: Your Name <you@example.com>\nDescription: HomeNetMonitor package" > deb-build/home-net-monitor/DEBIAN/control
+
+    - name: 🚚 Copy files
+      run: |
+        cp -r * deb-build/home-net-monitor/usr/local/home-net-monitor/
+
+    - name: 🏗️ Build .deb package
+      run: |
+        dpkg-deb --build deb-build/home-net-monitor home-net-monitor.deb
+
+    - name: 📤 Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: home-net-monitor-deb
+        path: home-net-monitor.deb
