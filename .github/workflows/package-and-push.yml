@@ -1,4 +1,4 @@
-name: Package HomeNetMonitor
+name: Build & Deploy HomeNetMonitor
 
 on:
   push:
@@ -7,54 +7,48 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
+      - name: 📥 Checkout code
         uses: actions/checkout@v3
 
-      - name: Create .deb package
+      - name: 🛠️ Install build tools
         run: |
           sudo apt update
-          sudo apt install -y dpkg fakeroot
-          dpkg-deb --build deb-build/home-net-monitor home-net-monitor.deb
-          echo "1.1.0" > version.txt
+          sudo apt install -y dpkg-dev jq curl
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+      - name: 📦 Build the .deb package
+        run: |
+          chmod +x ./install-scripts/wizard-installer.sh
+          mkdir -p ./deb-build/home-net-monitor/DEBIAN
+          echo "Package: home-net-monitor
+Version: 1.1.0
+Section: utils
+Priority: optional
+Architecture: all
+Maintainer: hbkdad
+Description: HomeNetMonitor Network Tool
+" > ./deb-build/home-net-monitor/DEBIAN/control
+
+          cp -r ./agent ./backend ./frontend ./install-scripts ./deb-build/home-net-monitor/usr/local/home-net-monitor/
+          dpkg-deb --build ./deb-build/home-net-monitor
+
+      - name: 📤 Upload Artifact to GitHub
+        uses: actions/upload-artifact@v3
         with:
-          name: deb-package
-          path: |
-            home-net-monitor.deb
+          name: home-net-monitor-deb
+          path: ./deb-build/home-net-monitor.deb
+
+      - name: 🧾 Create version.txt
+        run: echo "1.1.0" > version.txt
+
+      - name: 🚀 Publish to GitHub Releases
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release v1.1.0
+          tag_name: v1.1.0
+          files: |
+            deb-build/home-net-monitor.deb
             version.txt
-name: Build & Upload .deb Package
-
-on:
-  push:
-    branches: [ master ]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: ✅ Checkout code
-      uses: actions/checkout@v3
-
-    - name: 📦 Set up build folders
-      run: |
-        mkdir -p deb-build/home-net-monitor/DEBIAN
-        mkdir -p deb-build/home-net-monitor/usr/local/home-net-monitor
-        echo "Package: home-net-monitor\nVersion: 1.1.0\nArchitecture: all\nMaintainer: Your Name <you@example.com>\nDescription: HomeNetMonitor package" > deb-build/home-net-monitor/DEBIAN/control
-
-    - name: 🚚 Copy files
-      run: |
-        cp -r * deb-build/home-net-monitor/usr/local/home-net-monitor/
-
-    - name: 🏗️ Build .deb package
-      run: |
-        dpkg-deb --build deb-build/home-net-monitor home-net-monitor.deb
-
-    - name: 📤 Upload artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: home-net-monitor-deb
-        path: home-net-monitor.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
