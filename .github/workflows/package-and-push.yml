@@ -19,7 +19,7 @@ jobs:
           echo "1.1.0" > version.txt
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2
         with:
           name: deb-package
           path: |
