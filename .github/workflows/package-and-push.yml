@@ -52,3 +52,31 @@ Description: HomeNetMonitor Network Tool
             version.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+name: Build and Push HomeNetMonitor DEB
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ✅ Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: 📦 Build .deb Package
+        run: |
+          mkdir -p deb-build-output
+          cp -r * deb-build-output/
+          cd deb-build-output
+          dpkg-deb --build home-net-monitor
+          cp home-net-monitor.deb ..
+
+      - name: 📤 Upload .deb as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: home-net-monitor
+          path: home-net-monitor.deb
