@@ -1,0 +1,55 @@
+import React, { useEffect, useState } from 'react';
+
+function App() {
+  const [devices, setDevices] = useState([]);
+  const [bandwidth, setBandwidth] = useState({
+  useEffect(() => {
+    fetch("http://localhost:8000/devices")
+      .then(res => res.json())
+      .then(data => setDevices(data.devices));
+
+    fetch("http://localhost:8000/bandwidth")
+      .then(res => res.json())
+      .then(data => setBandwidth(data.bandwidth));
+
+    const interval = setInterval(() => {
+      fetch("http://localhost:8000/devices")
+        .then(res => res.json())
+        .then(data => setDevices(data.devices));
+
+      fetch("http://localhost:8000/bandwidth")
+        .then(res => res.json())
+        .then(data => setBandwidth(data.bandwidth));
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className='p-4 max-w-3xl mx-auto'>
+      <h1 className='text-3xl font-bold mb-4'>📡 Home Network Dashboard</h1>
+
+      <div className='bg-white shadow p-4 rounded-2xl mb-4'>
+        <h2 className='text-xl font-semibold mb-2'>📶 Bandwidth</h2>
+        <p><strong>Download:</strong> {bandwidth.download_kbps || 0} kbps</p>
+        <p><strong>Upload:</strong> {bandwidth.upload_kbps || 0} kbps</p>
+        <p className='text-xs text-gray-500 mt-2'>Updated: {bandwidth.timestamp || "N/A"}</p>
+      </div>
+
+      <div className='bg-white shadow p-4 rounded-2xl'>
+        <h2 className='text-xl font-semibold mb-2'>🔍 Devices on Network</h2>
+        <ul className='divide-y divide-gray-200'>
+          {devices.map((device, index) => (
+            <li key={index} className='py-2'>
+              <p><strong>IP:</strong> {device.ip}</p>
+              <p><strong>MAC:</strong> {device.mac}</p>
+            </li>
+          ))}
+        </ul>
+        {devices.length === 0 && <p className='text-gray-500'>No devices found.</p>}
+      </div>
+    </div>
+  );
+}
+
+export default App;

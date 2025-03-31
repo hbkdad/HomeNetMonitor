@@ -1,0 +1,83 @@
+import React, { useEffect, useState } from 'react';
+
+function App() {
+  const [devices, setDevices] = useState([]);
+  const [bandwidth, setBandwidth] = useState({});
+  const [history, setHistory] = useState([]);
+
+  const API = `http://${window.location.hostname}:8000`;
+
+  // eslint-disable-next-line react-hooks/exhaustive-const fetchData = async () => {
+      try {
+        const resDevices = await fetch(`${API}/devices`);
+        const resBandwidth = await fetch(`${API}/bandwidth`);
+        const resHistory = await fetch(`${API}/trafic`);
+
+        const dataDevices = await resDevices.json();
+        const dataBandwidth = await resBandwidth.json();
+        const dataHistory = await resHistory.json();
+        
+        const [traffic, setTraffic] = useState({});
+        const [pingHost, setPingHost] = useState("");
+        const [pingResult, setPingResult] = useState("");
+
+        setDevices(dataDevices.devices);
+        setBandwidth(dataBandwidth.bandwidth);
+        setHistory(dataHistory.history);
+      } catch (err) {
+        console.error("❌ Failed to fetch data:", err);
+      }
+    };
+
+    fetchData();
+    const interval = setInterval(fetchData, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="p-4 max-w-4xl mx-auto">
+      <h1 className="text-3xl font-bold mb-4">📡 Home Network Dashboard</h1>
+
+      <div className="bg-white shadow p-4 rounded-2xl mb-4">
+        <h2 className="text-xl font-semibold mb-2">📶 Bandwidth</h2>
+        <p><strong>Download:</strong> {bandwidth.download_kbps || 0} kbps</p>
+        <p><strong>Upload:</strong> {bandwidth.upload_kbps || 0} kbps</p>
+        <p className="text-xs text-gray-500 mt-2">Updated: {bandwidth.timestamp || "N/A"}</p>
+      </div>
+
+      <div className="bg-white shadow p-4 rounded-2xl mb-4">
+        <h2 className="text-xl font-semibold mb-2">🔍 Devices on Network</h2>
+        <ul className="divide-y divide-gray-200">
+          {devices.map((device, index) => (
+            <li key={index} className="py-2">
+              <p><strong>IP:</strong> {device.ip}</p>
+              <p><strong>MAC:</strong> {device.mac}</p>
+            </li>
+          ))}
+        </ul>
+        {devices.length === 0 && <p className="text-gray-500">No devices found.</p>}
+      </div>
+
+      <div className="bg-white shadow p-4 rounded-2xl">
+        <h2 className="text-xl font-semibold mb-2">🗂 Scan History</h2>
+        <button
+          onClick={() => window.open(`${API}/logs/scans.csv`, '_blank')}
+          className="mb-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          ⬇ Download CSV
+        </button>
+        <ul className="divide-y divide-gray-200 text-sm">
+          {history.map((entry, index) => (
+            <li key={index} className="py-1">
+              🕒 <strong>{entry.timestamp}</strong> | Devices: {entry.device_count} | ↓ {entry.download_kbps} kbps | ↑ {entry.upload_kbps} kbps
+            </li>
+          ))}
+        </ul>
+        {history.length === 0 && <p className="text-gray-500">No history logs found.</p>}
+      </div>
+    </div>
+  );
+}
+
+export default App;
+

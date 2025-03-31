@@ -1,0 +1,47 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+import json
+import os
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/")
+def read_root():
+    return {"status": "Home Network Monitor API is running."}
+
+@app.get("/devices")
+def get_devices():
+    if os.path.exists("scan_output.json"):
+        with open("scan_output.json", "r") as f:
+            data = json.load(f)
+        return {"devices": data.get("devices", [])}
+    return {"devices": []}
+
+@app.get("/bandwidth")
+def get_bandwidth():
+    if os.path.exists("scan_output.json"):
+        with open("scan_output.json", "r") as f:
+            data = json.load(f)
+        return {"bandwidth": data.get("bandwidth", {})}
+    return {"bandwidth": {}}
+import subprocess
+from fastapi.responses import JSONResponse
+
+@app.get("/update")
+def run_update():
+    try:
+        result = subprocess.run(
+            ["/usr/local/home-net-monitor/install-scripts/check-for-updates.sh"],
+            capture_output=True, text=True, check=True
+        )
+        return {"status": "success", "output": result.stdout}
+    except subprocess.CalledProcessError as e:
+        return JSONResponse(status_code=500, content={"status": "error", "output": e.stderr}

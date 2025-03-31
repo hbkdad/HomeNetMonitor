@@ -1,0 +1,11 @@
+node_modules/
+venv/
+*.log
+*.pyc
+__pycache__/
+.env
+build/
+dist/
+*.deb
+scan_output.json
+live_traffic.json
