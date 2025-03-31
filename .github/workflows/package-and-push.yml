@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: 📁 Checkout code
-        uses: actions/checkout@v3.5.2
+        uses: actions/checkout@v3
 
       - name: 🛠️ Install dpkg
         run: |
@@ -27,7 +27,7 @@ jobs:
           mv home-net-monitor.deb ../home-net-monitor.deb
 
       - name: ⬆️ Upload Artifact
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v3
         with:
           name: home-net-monitor
           path: home-net-monitor.deb
