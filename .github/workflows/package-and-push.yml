@@ -1,29 +1,27 @@
-name: 📦 Build & Push HomeNetMonitor DEB
+name: 📦 Build & Upload DEB Package
 
 on:
   push:
     branches: [ master ]
+  workflow_dispatch:
 
 jobs:
-  build:
+  build-deb:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout Code
-        uses: actions/checkout@v3
+    - name: 📥 Checkout code
+      uses: actions/checkout@v3
 
-      - name: 🏗️ Build .deb Package
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y dpkg-dev jq
-          mkdir -p ~/build-output
-          dpkg-deb --build ./deb-build/home-net-monitor ~/build-output/home-net-monitor.deb
-          echo "1.1.0" > ~/build-output/version.txt
+    - name: 🛠 Set up build directory
+      run: |
+        mkdir -p build-output
+        cp home-net-monitor.deb build-output/
+        cp version.txt build-output/
 
-      - name: ⬆️ Upload DEB and version.txt
-        uses: actions/upload-artifact@v3
-        with:
-          name: HomeNetMonitor-Assets
-          path: |
-            ~/build-output/home-net-monitor.deb
-            ~/build-output/version.txt
+    - name: 📤 Upload DEB package & version
+      uses: actions/upload-artifact@v3
+      with:
+        name: HomeNetMonitor_Package
+        path: build-output/
+``
